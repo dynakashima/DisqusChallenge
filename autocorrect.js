@@ -47,29 +47,42 @@ into the first program and verify that there are no occurrences of
 var fs = require("fs");
 
 Array.prototype.contains = function(word) {
-	return this.indexOf(word) !== -1;
+	return this.indexOf(word.toLowerCase()) !== -1;
 }
 
 // Synchronous read
 
-var data = fs.readFileSync('dictionary.txt');
-var dictionary = data.toString().trim().split('\n');
+// var data = fs.readFileSync('dictionary.txt');
+// var dictionary = data.toString().trim().split('\n');
+var dictionary = [
+	'inside',
+	'job',
+	'sheep'
+];
 
 var VOWELS = ['a', 'e', 'i', 'o', 'u'];
 
-var generateVowelPossibilites = function(word) {
-	return true;
-};
+var gen
 
 var autocorrect = function(word) {
-	return 'inside'
+	// handle lowercase
+
+	var possibilities = [word.toLowerCase()];
+
+	for (var i = 0; i < possibilities.length; i++) {
+		var possibility = possibilities[i];
+		if (dictionary.contains(possibility)) {
+			return possibility;
+		}
+	};
+	return 'NO CORRECTION';
 }
 
 
 // test cases
-function assert(expected, actual) {
+function assert(actual, expected) {
 	if (expected !== actual) { 
-		console.error('FAILED -> got:', actual, ', expected:', expected);
+		console.error('FAILED -> got:', actual + ',', 'expected:', expected);
 		return 1;
 	}
 	console.log('passed')
@@ -77,19 +90,7 @@ function assert(expected, actual) {
 }
 
 assert(autocorrect('inSIDE'), 'inside');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+assert(autocorrect('asldfjldasjf'), 'NO CORRECTION');
+// assert(autocorrect('jjoobbb'), 'job');
+// assert(autocorrect('weke'), 'wake');
+// assert(autocorrect('CUNsperrICY'), 'conspiracy');
