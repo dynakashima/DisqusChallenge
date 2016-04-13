@@ -24,7 +24,10 @@ The class of spelling mistakes to be corrected is as follows:
 1. Case (upper/lower) errors `inSIDE -> inside`
 2. Repeated letters `jjoobbb -> job`
 3. Incorrect vowels `weke -> wake`
-4. Any combination of the above types of errors `CUNsperrICY -> conspiracy`
+4. Any combination of the above types of errors 
+`CUNsperrICY -> conspiracy`
+conspiracy
+consperrICY
 
 
 Your solution should be faster than O(n) per word checked, where n is the
@@ -45,24 +48,22 @@ into the first program and verify that there are no occurrences of
 */
 
 var fs = require("fs");
-
-Array.prototype.contains = function(word) {
-	return this.indexOf(word.toLowerCase()) !== -1;
-}
+var Set = require("collections/set");
+var Dict = require("collections/dict");
+var Deque = require("collections/deque");
 
 // Synchronous read
 
 // var data = fs.readFileSync('dictionary.txt');
 // var dictionary = data.toString().trim().split('\n');
-var dictionary = [
+var dictionary = new Set([
 	'inside',
 	'job',
-	'sheep'
-];
+	'sheep',
+	'conspiracy'
+]);
 
-var VOWELS = ['a', 'e', 'i', 'o', 'u'];
-
-var gen
+var VOWELS = new Set(['a', 'e', 'i', 'o', 'u']);
 
 var autocorrect = function(word) {
 	// handle lowercase
@@ -76,8 +77,39 @@ var autocorrect = function(word) {
 		}
 	};
 	return 'NO CORRECTION';
+};
+
+function genVowelWords(word) {
+
 }
 
+var genRepeatLetters = function(word) {
+
+};
+
+function Pair(letter, freq) {
+    this.letter = letter;
+    this.freq = freq
+}
+
+// build array with count of elements and letter as key
+var frequencyArray = function(word) {
+	var prevLetter = word[0];
+	var toBuild = [new Pair(prevLetter, 1)];
+	
+	for (var i = 1; i < word.length; i++) {
+		var currLetter = word[i];
+		if (currLetter === prevLetter) {
+			var pair = toBuild.peekBack();
+			pair.freq += 1;
+		}
+		else {
+			toBuild.push(new Pair(currLetter, 1));
+			prevLetter = currLetter;
+		}
+	};
+	return toBuild;
+};
 
 // test cases
 function assert(actual, expected) {
@@ -91,6 +123,29 @@ function assert(actual, expected) {
 
 assert(autocorrect('inSIDE'), 'inside');
 assert(autocorrect('asldfjldasjf'), 'NO CORRECTION');
+// assert(genRepeatLetters('abbc'), [
+// 	'abbc',
+// 	'abc'
+// ])
+
+// assert(genRepeatLetters('aabbc'), [
+// 	'aabbc',
+// 	'abbc',
+// 	'aabc',
+// 	'abc'
+// ])
+// assert(genRepeatLetters('aaabbc'), [
+// 	'aaabbc'
+// 	'aabbc',
+// 	'abbc',
+// 	'aaabc',
+// 	'aabc',
+// 	'abc'
+// ]);
+
+// assert(autocorrect('sheeeeep'), 'sheep');
+
+// assert(autocorrect('jjoobbb'), 'job');
 // assert(autocorrect('jjoobbb'), 'job');
 // assert(autocorrect('weke'), 'wake');
 // assert(autocorrect('CUNsperrICY'), 'conspiracy');
