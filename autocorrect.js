@@ -51,20 +51,23 @@ of "NO CORRECTION" in the output.
 var fs = require("fs");
 var Set = require("collections/set");
 var Dict = require("collections/dict");
-var Deque = require("collections/deque");
 
 // Synchronous read
 
-// var data = fs.readFileSync('dictionary.txt');
-// var dictionary = data.toString().trim().split('\n');
+var data = fs.readFileSync('dictionary.txt');
+var lowerData = data.toString().trim().split('\n').map(function(word) {
+	return word.toLowerCase();
+})
+var dictionary = new Set(lowerData);
 
 // mock dictionary for development
-var dictionary = new Set([
-	'inside',
-	'job',
-	'sheep',
-	'conspiracy'
-]);
+// var dictionary = new Set([
+// 	'inside',
+// 	'job',
+// 	'sheep',
+// 	'conspiracy',
+// 	'wake'
+// ]);
 function Pair(letter, freq) {
     this.letter = letter;
     this.frequency = freq
@@ -73,19 +76,6 @@ function Pair(letter, freq) {
 var VOWELS = new Set(['a', 'e', 'i', 'o', 'u']);
 function isVowel(letter) {return VOWELS.contains(letter);}
 
-var autocorrect = function(word) {
-	// handle lowercase
-
-	var possibilities = [word.toLowerCase()];
-
-	for (var i = 0; i < possibilities.length; i++) {
-		var possibility = possibilities[i];
-		if (dictionary.contains(possibility)) {
-			return possibility;
-		}
-	};
-	return 'NO CORRECTION';
-};
 
 // ver similar to gen repeat letters which takes in a word
 // and for each word will return a set that has 
@@ -109,38 +99,7 @@ function genVowelWordsHelper(word) {
 	};
 	return retSet;
 }
-// console.log(genVowelWordsHelper('hjk').toArray())
-// console.log(genVowelWordsHelper('hajk').toArray())
-// should be 
-// ['hajk', 'hejk', 'hijk', 'hojk', 'hujk']
-// console.log(genVowelWordsHelper('hajek').toArray())
 
-// should be 
-// [ 'hajak',
-//   'hejak',
-//   'hijak',
-//   'hojak',
-//   'hujak',
-//   'hajek',
-//   'hejek',
-//   'hijek',
-//   'hojek',
-//   'hujek',
-//   'hajik',
-//   'hejik',
-//   'hijik',
-//   'hojik',
-//   'hujik',
-//   'hajok',
-//   'hejok',
-//   'hijok',
-//   'hojok',
-//   'hujok',
-//   'hajuk',
-//   'hejuk',
-//   'hijuk',
-//   'hojuk',
-//   'hujuk' ]
 
 // algorithm goes like this... 
 // create a set if the frequency of letter is one add
@@ -155,14 +114,6 @@ function genRepeatLetters(frequencies) {
 	});
 	return toRet;
 };
-
-var a = new Pair('a', 3);
-var c = new Pair('c', 1)
-var b = new Pair('b', 2);
-// console.log(genRepeatLetters([a,c,b]).toArray());
-
-// should produce 
-// [ 'acb', 'aacb', 'aaacb', 'acbb', 'aacbb', 'aaacbb' ]
 
 // helper function to that given a letter and a frequency:f
 // will make f copies of the current set and return a new
@@ -185,7 +136,6 @@ function addLettersToSetHelper(letter, frequency, currSet) {
 // console.log(addLettersToSetHelper('b', 2, new Set(['a', 'aa', 'aaa'])).toArray());
 
 
-
 // returns a new set with letters added doesNot modify inputSet
 function addLettersToSet(letters, set) {
 	var setToRet = new Set();
@@ -194,11 +144,6 @@ function addLettersToSet(letters, set) {
 	});
 	return setToRet;
 }
-
-// var testSet = new Set(['a','aa', 'aaa']);
-
-// console.log(testSet.toArray())
-// console.log(addLettersToSet('e', testSet).toArray());
 
 // build array with count of elements and letter as key
 // this is just for ease to elinate checks within the 
@@ -223,7 +168,51 @@ var frequencyArray = function(word) {
 // console.log(frequencyArray('helloo'));
 // console.log(genRepeatLetters(frequencyArray('helloo')).toArray());
 
-// test cases
+var autocorrect = function(word) {
+	// handle lowercase
+	word = word.toLowerCase();
+	// var possibilities = [word.toLowerCase()];
+	var allPossibles = new Set();
+	
+	// first handle repeated elements
+	var freqArr = frequencyArray(word);
+	var repeatPossibles = genRepeatLetters(freqArr);
+	
+	// exit early if repeats produces correct result
+	// aka prioritize for repeats
+	var repIntersction = repeatPossibles.intersection(dictionary);
+	if (repIntersction.length !== 0) {
+		return repIntersction.pop();
+	}
+
+	// second for each of the elements in returned repeated set
+	// create vowel possibilites and add to set
+	repeatPossibles.forEach(function(word) {
+		var vowelPossForWord = genVowelWordsHelper(word);
+		allPossibles.addEach(vowelPossForWord);
+	});
+
+
+	// intersection are the elements that exist in both sets
+	// if none exists then no match has occurred
+	// this could be changed to then return all possible matches
+
+	var allIntersection = allPossibles.intersection(dictionary);
+	
+	// comment to hide all possibilties
+	console.log(allIntersection.toArray());
+
+	if (allIntersection.length === 0) {
+		return 'NO CORRECTION';
+	}
+	else {
+		return allIntersection.pop();
+	}
+};
+
+//////////////////////////////////////////
+/////////////// TEST UTILS ///////////////
+//////////////////////////////////////////
 function assert(actual, expected) {
 	if (expected !== actual) { 
 		console.error(
@@ -262,7 +251,7 @@ assert(autocorrect('inSIDE'), 'inside');
 // check dictionary lookup
 assert(autocorrect('asldfjldasjf'), 'NO CORRECTION');
 
-// check repeated letters
+// // check repeated letters
 var sheeptest = frequencyArray('sheeeeeeep');
 var sheepresult = genRepeatLetters(sheeptest);
 assert(arraysEqual(sheepresult.toArray(),[
@@ -274,31 +263,61 @@ assert(arraysEqual(sheepresult.toArray(),[
 	'sheeeeeep',
 	'sheeeeeeep' ]), true);
 
+var abcTest = frequencyArray('aaabbcdd');
+var abcPossibles = genRepeatLetters(abcTest);
+assert(arraysEqual(abcPossibles.toArray(), [
+	'abcd',
+	'aabcd',
+	'aaabcd',
+	'abbcd',
+	'aabbcd',
+	'aaabbcd',
+	'abcdd',
+	'aabcdd',
+	'aaabcdd',
+	'abbcdd',
+	'aabbcdd',
+	'aaabbcdd' ]), true);
+
+
+// check vowels
+assert(arraysEqual(genVowelWordsHelper('hajk').toArray(),[
+	'hajk',
+	'hejk',
+	'hijk',
+	'hojk',
+	'hujk' ]), true);
 assert(genVowelWordsHelper('hajek').length, 25);
+assert(arraysEqual(genVowelWordsHelper('hajek').toArray(), [ 
+	'hajak',
+	'hejak',
+	'hijak',
+	'hojak',
+	'hujak',
+	'hajek',
+	'hejek',
+	'hijek',
+	'hojek',
+	'hujek',
+	'hajik',
+	'hejik',
+	'hijik',
+	'hojik',
+	'hujik',
+	'hajok',
+	'hejok',
+	'hijok',
+	'hojok',
+	'hujok',
+	'hajuk',
+	'hejuk',
+	'hijuk',
+	'hojuk',
+	'hujuk' ]), true);
 
-// assert(genRepeatLetters('abbc'), [
-// 	'abbc',
-// 	'abc'
-// ])
-
-// assert(genRepeatLetters('aabbc'), [
-// 	'aabbc',
-// 	'abbc',
-// 	'aabc',
-// 	'abc'
-// ])
-// assert(genRepeatLetters('aaabbc'), [
-// 	'aaabbc'
-// 	'aabbc',
-// 	'abbc',
-// 	'aaabc',
-// 	'aabc',
-// 	'abc'
-// ]);
-
-// assert(autocorrect('sheeeeep'), 'sheep');
-
-// assert(autocorrect('jjoobbb'), 'job');
-// assert(autocorrect('jjoobbb'), 'job');
-// assert(autocorrect('weke'), 'wake');
-// assert(autocorrect('CUNsperrICY'), 'conspiracy');
+// some fail since I return first possibility not just the one
+// closest to original word which would require some definition
+assert(autocorrect('sheeeeep'), 'sheep');
+assert(autocorrect('jjoobbb'), 'job');
+assert(autocorrect('weke'), 'wake');
+assert(autocorrect('CUNsperrICY'), 'conspiracy');
