@@ -55,5 +55,5 @@ be able to finish but I wanted to submit on time.
 	value.
 
 4) 	did not have to create the second problem i.e. incorrect word generator.
-	But, itshould be pretty similar to code to where i generated the 
+	But, it should be pretty similar to code to where i generated the 
 	possibilties with some constraints (example limit on repeated letters etc).
