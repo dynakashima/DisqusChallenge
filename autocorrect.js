@@ -100,20 +100,23 @@ function genRepeatLetters(frequencies) {
 	frequencies.forEach(function(pair) {
 		var letter = pair.letter;
 		var freq = pair.frequency;
-		toRet = addLettersToSet(letter, freq, toRet);
+		toRet = addLettersToSetHelper(letter, freq, toRet);
 	});
 	return toRet;
 };
 
-// var a = new Pair('a', 3);
-// var b = new Pair('b', 2);
-// console.log(genRepeatLetters([a,b]).toArray());
+var a = new Pair('a', 3);
+var c = new Pair('c', 1)
+var b = new Pair('b', 2);
+console.log(genRepeatLetters([a,c,b]).toArray());
+// should produce 
+// [ 'acb', 'aacb', 'aaacb', 'acbb', 'aacbb', 'aaacbb' ]
 
 // helper function to that given a letter and a frequency:f
 // will make f copies of the current set and return a new
 // and for each copy, will append the letter f times
 // should return 'a', 'aa', 'aaa'
-function addLettersToSet(letter, frequency, currSet) {
+function addLettersToSetHelper(letter, frequency, currSet) {
 	var letToAppend = '';
 	
 	var retSet = new Set();
