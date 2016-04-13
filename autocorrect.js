@@ -71,7 +71,7 @@ function Pair(letter, freq) {
 }
 
 var VOWELS = new Set(['a', 'e', 'i', 'o', 'u']);
-// console.log(VOWELS.difference(['a']).toArray())
+function isVowel(letter) {return VOWELS.contains(letter);}
 
 var autocorrect = function(word) {
 	// handle lowercase
@@ -87,9 +87,60 @@ var autocorrect = function(word) {
 	return 'NO CORRECTION';
 };
 
-function genVowelWords(word) {
+// ver similar to gen repeat letters which takes in a word
+// and for each word will return a set that has 
+// where you start if it is a vowel
+function genVowelWordsHelper(word) {
+	var retSet = new Set(['']);
 
+	for (var i = 0; i < word.length; i++) {
+		var letter = word[i];
+		if (isVowel(letter)) {
+			var tempSet = retSet.clone();
+			retSet.clear();
+			VOWELS.forEach(function(vowel) {
+				var aSet = addLettersToSet(vowel, tempSet);
+				retSet.addEach(aSet);
+			});
+		}
+		else {
+			retSet = addLettersToSetHelper(letter, 1, retSet);
+		}
+	};
+	return retSet;
 }
+// console.log(genVowelWordsHelper('hjk').toArray())
+// console.log(genVowelWordsHelper('hajk').toArray())
+// should be 
+// ['hajk', 'hejk', 'hijk', 'hojk', 'hujk']
+// console.log(genVowelWordsHelper('hajek').toArray())
+
+// should be 
+// [ 'hajak',
+//   'hejak',
+//   'hijak',
+//   'hojak',
+//   'hujak',
+//   'hajek',
+//   'hejek',
+//   'hijek',
+//   'hojek',
+//   'hujek',
+//   'hajik',
+//   'hejik',
+//   'hijik',
+//   'hojik',
+//   'hujik',
+//   'hajok',
+//   'hejok',
+//   'hijok',
+//   'hojok',
+//   'hujok',
+//   'hajuk',
+//   'hejuk',
+//   'hijuk',
+//   'hojuk',
+//   'hujuk' ]
 
 // algorithm goes like this... 
 // create a set if the frequency of letter is one add
@@ -108,7 +159,8 @@ function genRepeatLetters(frequencies) {
 var a = new Pair('a', 3);
 var c = new Pair('c', 1)
 var b = new Pair('b', 2);
-console.log(genRepeatLetters([a,c,b]).toArray());
+// console.log(genRepeatLetters([a,c,b]).toArray());
+
 // should produce 
 // [ 'acb', 'aacb', 'aaacb', 'acbb', 'aacbb', 'aaacbb' ]
 
@@ -129,8 +181,8 @@ function addLettersToSetHelper(letter, frequency, currSet) {
 	};
 	return retSet;
 }
-// console.log(addLettersToSet('a', 3, new Set([''])).toArray());
-// console.log(addLettersToSet('b', 2, new Set(['a', 'aa', 'aaa'])).toArray());
+// console.log(addLettersToSetHelper('a', 3, new Set([''])).toArray());
+// console.log(addLettersToSetHelper('b', 2, new Set(['a', 'aa', 'aaa'])).toArray());
 
 
 
@@ -142,9 +194,6 @@ function addLettersToSet(letters, set) {
 	});
 	return setToRet;
 }
-// given a frequency:f will 
-// create f copies of the set
-// then will a
 
 // var testSet = new Set(['a','aa', 'aaa']);
 
@@ -173,6 +222,7 @@ var frequencyArray = function(word) {
 };
 // console.log(frequencyArray('helloo'));
 // console.log(genRepeatLetters(frequencyArray('helloo')).toArray());
+
 // test cases
 function assert(actual, expected) {
 	if (expected !== actual) { 
@@ -185,9 +235,47 @@ function assert(actual, expected) {
 	console.log('passed')
 	return 0;
 }
+// copied from internet to save time helper for array equals testing
+function arraysEqual(a, b) {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (a.length != b.length) return false;
 
+  // If you don't care about the order of the elements inside
+  // the array, you should sort both arrays here.
+  a.sort();
+  b.sort();
+  for (var i = 0; i < a.length; ++i) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+
+///////////////////////////////////////
+/////////////// TESTING ///////////////
+///////////////////////////////////////
+
+// check lowercase
 assert(autocorrect('inSIDE'), 'inside');
+
+// check dictionary lookup
 assert(autocorrect('asldfjldasjf'), 'NO CORRECTION');
+
+// check repeated letters
+var sheeptest = frequencyArray('sheeeeeeep');
+var sheepresult = genRepeatLetters(sheeptest);
+assert(arraysEqual(sheepresult.toArray(),[
+	'shep',
+	'sheep',
+	'sheeep',
+	'sheeeep',
+	'sheeeeep',
+	'sheeeeeep',
+	'sheeeeeeep' ]), true);
+
+assert(genVowelWordsHelper('hajek').length, 25);
+
 // assert(genRepeatLetters('abbc'), [
 // 	'abbc',
 // 	'abc'
